@@ -1,0 +1,8 @@
+<html>
+    <head>
+        <title>SSO Server</title>
+    </head>
+    <body>
+        <button type="button">Welcome to SSO</button>
+    </body>
+</html>

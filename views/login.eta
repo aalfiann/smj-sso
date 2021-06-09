@@ -1,0 +1,12 @@
+<html>
+    <head>
+        <title>Login SSO</title>
+    </head>
+    <body>
+        <form action="/login" method="post">
+            <input type="text" name="email" placeholder="email">
+            <input type="password" name="password" placeholder="password">
+            <button type="submit">Login</button>
+        </form>
+    </body>
+</html>
