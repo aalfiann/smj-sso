@@ -6,6 +6,7 @@ const helper = require('../lib/helper')
 const password = require('../lib/password')
 const { v4: uuidv4 } = require('uuid')
 const { db, User } = require('../models/user')
+const config = require('../config')
 
 router.get('/', (req, res) => {
   res.render('index', {})
@@ -78,9 +79,28 @@ router.post('/login', async (req, res, next) => {
   try {
     if (!helper.isEmptyString(req.body.email) && !helper.isEmptyString(req.body.password)) {
       // check email
-      // verify password
-      // generate code
-      // redirect to service callback url with code
+      const findUser = await User.findOne({ where: { email: req.body.email } })
+      if (findUser !== null) {
+        // verify password
+        const verifyPass = await password.compare(req.body.password, findUser.hash)
+        if (verifyPass) {
+          // generate code
+          const code = helper.randomString(21)
+          req.session.code = code
+          // redirect to service callback url with code
+          res.redirect(helper.appendUrlParam(findUser.service_callback_url, 'code', code))
+        } else {
+          res.json({
+            status: false,
+            message: 'Wrong Email or Password'
+          })
+        }
+      } else {
+        res.json({
+          status: false,
+          message: 'Wrong Email or Password'
+        })
+      }
     } else {
       res.status(400).json({
         status: false,
@@ -99,19 +119,33 @@ router.post('/token', async (req, res, next) => {
       !helper.isEmptyString(req.body.client_id) &&
       !helper.isEmptyString(req.body.client_secret)) {
       // grant_type value must be "authorization_code"
-      // check expires session code
-      // check client_id and client_secret
-      // generate access_token
-      // save access_token to session for 1 hour
-      // clear session code
-      // res.json({
-      //   status: true,
-      //   message: 'Successful get token',
-      //   response: {
-      //     access_token: 'RsT5OjbzRn430zqMLgV3Ia',
-      //     expires_in: 3600
-      //   }
-      // })
+      if (req.body.grant_type === 'authorization_code') {
+        // check expires session code
+        if (req.session.code) {
+          // check client_id and client_secret
+          const findUser = await User.findOne({ where: { client_id: req.body.client_id, client_secret: req.body.client_secret } })
+          if (findUser !== null) {
+            // generate new access_token
+            const accessToken = helper.randomString(32)
+            // save access_token to session for 1 hour
+            req.session.access_token = accessToken
+            // clear session code
+            req.session.code = null
+            return res.json({
+              status: true,
+              message: 'Successful get token',
+              response: {
+                access_token: accessToken,
+                expires_in: ((config.session.maxAge) / 1000).toFixed(0)
+              }
+            })
+          }
+        }
+      }
+      res.status(400).json({
+        status: false,
+        message: 'Bad Request'
+      })
     }
   } catch (error) {
     next(error)

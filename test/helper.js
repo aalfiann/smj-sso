@@ -21,4 +21,11 @@ describe('function test', function () {
     assert.strictEqual(helper.isEmptyString([]), false)
     assert.strictEqual(helper.isEmptyString({}), false)
   })
+
+  it('append query parameter', function () {
+    const url = 'http://localhost/cb'
+    const expected = 'http://localhost/cb?code=123'
+    const result = helper.appendUrlParam(url, 'code', '123')
+    assert.strictEqual(result, expected)
+  })
 })
