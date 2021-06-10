@@ -2,20 +2,26 @@
 
 const { db, Sequelize } = require('../lib/connection')
 
-const User = db.define('user', {
+const Service = db.define('service', {
   id: {
     type: Sequelize.STRING,
     primaryKey: true
   },
-  email: {
+  service_name: {
     type: Sequelize.STRING
   },
-  hash: {
+  service_callback_url: {
+    type: Sequelize.STRING
+  },
+  client_id: {
+    type: Sequelize.STRING
+  },
+  client_secret: {
     type: Sequelize.STRING
   }
 })
 
 module.exports = {
-  User,
+  Service,
   db
 }

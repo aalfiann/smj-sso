@@ -3,7 +3,7 @@
         <title>Login SSO</title>
     </head>
     <body>
-        <form action="/login" method="post">
+        <form action="/login?client_id=<%=it.client_id%>" method="post">
             <input type="text" name="email" placeholder="email">
             <input type="password" name="password" placeholder="password">
             <button type="submit">Login</button>

@@ -1,10 +1,9 @@
 'use strict'
 
 const config = {
-  port: process.env.PORT || 3000, // Port Server (default is 3000)
+  port: process.env.PORT || 4000, // Port Server (default is 4000)
   session: {
-    maxAge: 3600000, // 1 hour
-    secret: 'secret for session'
+    maxAge: 3600 // 1 hour
   },
   database: {
     name: 'sso_db',
