@@ -12,6 +12,9 @@ const User = db.define('user', {
   },
   hash: {
     type: Sequelize.STRING
+  },
+  status: {
+    type: Sequelize.STRING
   }
 })
 

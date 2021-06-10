@@ -34,31 +34,39 @@ router.post('/register', async (req, res, next) => {
         const newuser = await User.create({
           id: userId,
           email: req.body.email,
-          hash: hash
+          hash: hash,
+          status: 'active'
         })
         if (newuser) {
-          const newservice = await Service.create({
-            id: uuidv4(),
-            service_name: req.body.service_name,
-            service_callback_url: req.body.service_callback_url,
-            client_id: clientId,
-            client_secret: clientSecret
-          })
-          if (newservice) {
-            // success
+          if (!helper.isEmptyString(req.body.service_name) && !helper.isEmptyString(req.body.service_callback_url)) {
+            const newservice = await Service.create({
+              id: uuidv4(),
+              service_name: req.body.service_name,
+              service_callback_url: req.body.service_callback_url,
+              client_id: clientId,
+              client_secret: clientSecret
+            })
+            if (newservice) {
+              // success
+              res.json({
+                status: true,
+                message: 'Register success',
+                response: {
+                  client_id: clientId,
+                  client_secret: clientSecret
+                }
+              })
+            } else {
+              // fail
+              res.status(400).json({
+                status: false,
+                message: 'Register failed'
+              })
+            }
+          } else {
             res.json({
               status: true,
-              message: 'Register success',
-              response: {
-                client_id: clientId,
-                client_secret: clientSecret
-              }
-            })
-          } else {
-            // fail
-            res.status(400).json({
-              status: false,
-              message: 'Register failed'
+              message: 'Register success'
             })
           }
         } else {
@@ -86,7 +94,7 @@ router.post('/register', async (req, res, next) => {
 })
 
 router.get('/login', (req, res) => {
-  res.render('login', { client_id: req.query.client_id })
+  res.render('login', { client_id: req.query.client_id, message: '' })
 })
 
 router.post('/login', async (req, res, next) => {
@@ -98,6 +106,10 @@ router.post('/login', async (req, res, next) => {
         // verify password
         const verifyPass = await password.compare(req.body.password, findUser.hash)
         if (verifyPass) {
+          // check user status active or banned
+          if (findUser.status === 'banned') {
+            return res.render('login', { client_id: req.query.client_id, message: 'Invalid credentials' })
+          }
           // generate code
           const code = helper.randomString(21)
           await session.set(code, { code: code, email: req.body.email, user_id: findUser.id }, 120)
@@ -106,22 +118,13 @@ router.post('/login', async (req, res, next) => {
           if (redir !== null) {
             res.redirect(helper.appendUrlParam(redir.service_callback_url, 'code', code))
           } else {
-            res.status(400).json({
-              status: false,
-              message: 'Wrong Email or Password'
-            })
+            res.render('login', { client_id: req.query.client_id, message: 'Invalid credentials' })
           }
         } else {
-          res.json({
-            status: false,
-            message: 'Wrong Email or Password'
-          })
+          res.render('login', { client_id: req.query.client_id, message: 'Wrong Email or Password' })
         }
       } else {
-        res.json({
-          status: false,
-          message: 'Wrong Email or Password'
-        })
+        res.render('login', { client_id: req.query.client_id, message: 'Wrong Email or Password' })
       }
     } else {
       res.status(400).json({
