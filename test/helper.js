@@ -4,7 +4,7 @@
 const assert = require('assert')
 const helper = require('../lib/helper')
 
-describe('function test', function () {
+describe('helper function test', function () {
   it('randomString', async function () {
     const result1 = helper.randomString(43)
     const result2 = helper.randomString(43)
