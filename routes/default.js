@@ -181,7 +181,10 @@ router.post('/token', async (req, res, next) => {
 })
 
 router.post('/profile', async (req, res) => {
-  const data = await session.get(req.body.access_token)
+  if (!req.headers.authorization) {
+    return res.status(401).json({ error: 'No credentials sent!' })
+  }
+  const data = await session.get(req.headers.authorization.replace('Bearer ', ''))
   if (data) {
     res.json({
       status: true,
