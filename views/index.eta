@@ -3,6 +3,6 @@
         <title>SSO Server</title>
     </head>
     <body>
-        <button type="button">Welcome to SSO</button>
+        <button type="button" onclick="location.href='/register'">Register SSO</button>
     </body>
 </html>

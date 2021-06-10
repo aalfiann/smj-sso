@@ -112,7 +112,7 @@ router.post('/login', async (req, res, next) => {
           }
           // generate code
           const code = helper.randomString(21)
-          await session.set(code, { code: code, email: req.body.email, user_id: findUser.id }, 120)
+          await session.set(code, { code: code, email: req.body.email, user_id: findUser.id, status: findUser.status }, 120)
           // redirect to service callback url with code
           const redir = await Service.findOne({ where: { client_id: req.query.client_id } })
           if (redir !== null) {
@@ -154,7 +154,7 @@ router.post('/token', async (req, res, next) => {
             // generate new access_token
             const accessToken = helper.randomString(32)
             // save access_token to session for 1 hour
-            await session.set(accessToken, { access_token: accessToken, email: recode.email, user_id: recode.user_id })
+            await session.set(accessToken, { access_token: accessToken, email: recode.email, user_id: recode.user_id, status: recode.status })
             // clear session code
             await session.del(req.body.code)
             return res.json({
@@ -194,7 +194,8 @@ router.post('/profile', async (req, res) => {
       message: 'Succesful get data profile',
       response: {
         user_id: data.user_id,
-        email: data.email
+        email: data.email,
+        status: data.status
       }
     })
   } else {
