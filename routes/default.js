@@ -20,6 +20,7 @@ router.get('/register', (req, res) => {
 
 router.post('/register', async (req, res, next) => {
   try {
+    let result = {}
     if (!helper.isEmptyString(req.body.email) && !helper.isEmptyString(req.body.password)) {
       // check available email
       const findUser = await User.findOne({ where: { email: req.body.email } })
@@ -28,8 +29,6 @@ router.post('/register', async (req, res, next) => {
         const hash = await password.generate(req.body.password)
         // generate client id and secret
         const userId = uuidv4()
-        const clientId = helper.randomString(32)
-        const clientSecret = helper.randomString(43)
         // save to db
         const newuser = await User.create({
           id: userId,
@@ -38,56 +37,60 @@ router.post('/register', async (req, res, next) => {
           status: 'active'
         })
         if (newuser) {
-          if (!helper.isEmptyString(req.body.service_name) && !helper.isEmptyString(req.body.service_callback_url)) {
-            const newservice = await Service.create({
-              id: uuidv4(),
-              service_name: req.body.service_name,
-              service_callback_url: req.body.service_callback_url,
-              client_id: clientId,
-              client_secret: clientSecret
-            })
-            if (newservice) {
-              // success
-              res.json({
-                status: true,
-                message: 'Register success',
-                response: {
-                  client_id: clientId,
-                  client_secret: clientSecret
-                }
-              })
-            } else {
-              // fail
-              res.status(400).json({
-                status: false,
-                message: 'Register failed'
-              })
-            }
-          } else {
-            res.json({
-              status: true,
-              message: 'Register success'
-            })
+          result = {
+            status: true,
+            message: 'Register success'
           }
         } else {
           // fail
-          res.status(400).json({
+          return res.status(400).json({
             status: false,
             message: 'Register failed'
           })
         }
       } else {
-        res.json({
+        result = {
           status: false,
           message: 'User email already exists'
+        }
+      }
+    }
+
+    if (!helper.isEmptyString(req.body.service_name) && !helper.isEmptyString(req.body.service_callback_url)) {
+      const clientId = helper.randomString(32)
+      const clientSecret = helper.randomString(43)
+      const newservice = await Service.create({
+        id: uuidv4(),
+        service_name: req.body.service_name,
+        service_callback_url: req.body.service_callback_url,
+        client_id: clientId,
+        client_secret: clientSecret
+      })
+      if (newservice) {
+        // success
+        result = {
+          status: true,
+          message: 'Register success',
+          response: {
+            client_id: clientId,
+            client_secret: clientSecret
+          }
+        }
+      } else {
+        // fail
+        return res.status(400).json({
+          status: false,
+          message: 'Register failed'
         })
       }
-    } else {
-      res.status(400).json({
+    }
+    if (result.status === undefined) {
+      return res.status(400).json({
         status: false,
-        message: 'Bad Request'
+        message: 'Register failed'
       })
     }
+    res.json(result)
   } catch (error) {
     next(error)
   }
