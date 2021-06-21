@@ -157,7 +157,12 @@ router.post('/token', async (req, res, next) => {
             // generate new access_token
             const accessToken = helper.randomString(32)
             // save access_token to session for 1 hour
-            await session.set(accessToken, { access_token: accessToken, email: recode.email, user_id: recode.user_id, status: recode.status })
+            await session.set(accessToken, {
+              access_token: accessToken,
+              email: recode.email,
+              user_id: recode.user_id,
+              status: recode.status
+            })
             // clear session code
             await session.del(req.body.code)
             return res.json({
